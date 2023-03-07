@@ -4,8 +4,9 @@ import React, { useContext } from "react";
 import Layout from "../components/Layout";
 import { Store } from "../utils/Store";
 import { useRouter } from "next/router";
+import dynamic from "next/dynamic";
 
-export default function CartScreen() {
+function CartScreen() {
   const router = useRouter();
   const { state, dispatch } = useContext(Store);
   const {
@@ -96,7 +97,7 @@ export default function CartScreen() {
               </li>
               <li>
                 <button
-                  onClick={() => router.push("/shipping")}
+                  onClick={() => router.push("login?redirect=/shipping")}
                   className="primary-button w-full"
                 >
                   Check Out
@@ -109,3 +110,4 @@ export default function CartScreen() {
     </Layout>
   );
 }
+export default dynamic(() => Promise.resolve(CartScreen), { ssr: false });
