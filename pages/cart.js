@@ -1,10 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import React, { useContext } from "react";
+// import { XCircleIcon } from "@heroicons/react/outline";
 import Layout from "../components/Layout";
 import { Store } from "../utils/Store";
 import { useRouter } from "next/router";
 import dynamic from "next/dynamic";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 function CartScreen() {
   const router = useRouter();
@@ -15,12 +18,14 @@ function CartScreen() {
   const removeItemHandler = (item) => {
     dispatch({ type: "CART_REMOVE_ITEM", payload: item });
   };
-  const updateCartHandler = (item, qty) => {
+  const updateCartHandler = async (item, qty) => {
     const quantity = Number(qty);
-    dispatch({
-      type: "CART_ADD_ITEM",
-      payload: { ...item, quantity },
-    });
+    const { data } = await axios.get(`/api/products/${item._id}`);
+    if (data.countInStock < quantity) {
+      return toast.error("Sorry. Product is out of stock");
+    }
+    dispatch({ type: "CART_ADD_ITEM", payload: { ...item, quantity } });
+    toast.success("Product updated in the cart");
   };
   return (
     <Layout title="Shopping Cart">
@@ -66,18 +71,17 @@ function CartScreen() {
                         }
                       >
                         {[...Array(item.countInStock).keys()].map((x) => (
-                          <option value={x + 1} key={x + 1}>
+                          <option key={x + 1} value={x + 1}>
                             {x + 1}
                           </option>
                         ))}
                       </select>
                     </td>
                     <td className="p-5 text-right">${item.price}</td>
-                    <td className="p-5 text-right">
+                    <td className="p-5 text-center">
                       <button
-                        className="rounded-full border border-black-700 hover:text-red-500 shadow-md "
-                        type="button"
                         onClick={() => removeItemHandler(item)}
+                        className="text-xl"
                       >
                         X
                       </button>
@@ -110,4 +114,5 @@ function CartScreen() {
     </Layout>
   );
 }
+
 export default dynamic(() => Promise.resolve(CartScreen), { ssr: false });
